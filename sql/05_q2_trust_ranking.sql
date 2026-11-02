@@ -1,4 +1,6 @@
---Ranking by Trusts
+
+-- Q2: Trust ranking on major emergency (Type 1) 4-hour performance, Oct 2024 to Sep 2026
+-- Restricted to 112 trusts with all 24 months of data
 SELECT * FROM ae_monthly;
 
 SELECT org_code,
@@ -15,4 +17,5 @@ SELECT org_code,
       from ae_monthly
       WHERE has_type1
       GROUP BY org_code,org_name
+      HAVING COUNT(DISTINCT period)=24
       ORDER BY performance_rank ;
