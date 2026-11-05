@@ -1,10 +1,11 @@
 
 -- Q2: Trust ranking on major emergency (Type 1) 4-hour performance, Oct 2024 to Sep 2026
--- Restricted to 112 trusts with all 24 months of data
-SELECT * FROM ae_monthly;
+-- 120 trusts with all 24 months of data
+
 
 SELECT org_code,
-       org_name AS provider,
+       max(org_name) KEEP (DENSE_RANK LAST ORDER BY period) AS org_name,
+    
        count(distinct period) AS month_reported,
       sum(ae_att_type_1+ae_att_type_1_booked) AS Major_Emergency_Attendance,
       sum(ae_att_over_4hrs_type_1+ae_att_over_4hrs_type_1_booked) AS Major_Emergency_4hr_Breaches,
@@ -16,6 +17,6 @@ SELECT org_code,
       
       from ae_monthly
       WHERE has_type1
-      GROUP BY org_code,org_name
+      GROUP BY org_code
       HAVING COUNT(DISTINCT period)=24
       ORDER BY performance_rank ;

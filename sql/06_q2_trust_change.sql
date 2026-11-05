@@ -1,10 +1,10 @@
 -- Q2: Change in Type 1 4-hour performance by trust, Year 1 vs Year 2
 -- Year 1 = Oct 2024 to Sep 2025, Year 2 = Oct 2025 to Sep 2026
--- Restricted to the 112 trusts with all 24 months of data
+-- 120 trusts with all 24 months of data
 
 WITH trust_years AS (
     SELECT org_code,
-           org_name,
+           max(org_name) KEEP (DENSE_RANK LAST ORDER BY period) AS org_name,
            SUM(CASE WHEN period <  DATE '2025-10-01'
                     THEN ae_att_type_1 + ae_att_type_1_booked END)                       AS att_y1,
            SUM(CASE WHEN period <  DATE '2025-10-01'
@@ -15,7 +15,7 @@ WITH trust_years AS (
                     THEN ae_att_over_4hrs_type_1 + ae_att_over_4hrs_type_1_booked END)   AS breach_y2
     FROM   ae_monthly
     WHERE  has_type1
-    GROUP BY org_code, org_name
+    GROUP BY org_code
     HAVING COUNT(DISTINCT period) = 24
 )
 SELECT org_code,

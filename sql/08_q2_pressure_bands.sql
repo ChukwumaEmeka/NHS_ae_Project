@@ -3,13 +3,13 @@
 
 WITH trust_perf AS (
     SELECT org_code,
-           org_name,
+           max(org_name) KEEP (DENSE_RANK LAST ORDER BY period) AS org_name,
            (SUM(ae_att_type_1 + ae_att_type_1_booked)
           - SUM(ae_att_over_4hrs_type_1 + ae_att_over_4hrs_type_1_booked))
           / SUM(ae_att_type_1 + ae_att_type_1_booked) * 100      AS pct_4hr
     FROM   ae_monthly
     WHERE  has_type1
-    GROUP BY org_code, org_name
+    GROUP BY org_code
     HAVING COUNT(DISTINCT period) = 24
 ),
 categorised AS (
@@ -46,7 +46,7 @@ WITH trust_perf AS (
           / SUM(ae_att_type_1 + ae_att_type_1_booked) * 100      AS pct_4hr
     FROM   ae_monthly
     WHERE  has_type1
-    GROUP BY org_code, org_name
+    GROUP BY org_code,org_name
     HAVING COUNT(DISTINCT period) = 24
 ),
 categorised AS (
@@ -70,3 +70,24 @@ SELECT org_code,
        pressure_band
 FROM   categorised
 ORDER BY pct_4hr desc;
+
+SELECT org_code, COUNT(DISTINCT org_name) AS name_versions
+FROM   ae_monthly
+WHERE  has_type1
+GROUP BY org_code
+HAVING COUNT(DISTINCT org_name) > 1;
+
+SELECT org_code,
+       org_name,
+       MIN(period)            AS first_month,
+       MAX(period)            AS last_month,
+       COUNT(DISTINCT period) AS months
+FROM   ae_monthly
+WHERE  has_type1
+AND    org_code IN (SELECT org_code
+                    FROM   ae_monthly
+                    WHERE  has_type1
+                    GROUP BY org_code
+                    HAVING COUNT(DISTINCT org_name) > 1)
+GROUP BY org_code, org_name
+ORDER BY org_code, first_month;

@@ -3,14 +3,14 @@
 
 WITH trust_waits AS (
     SELECT org_code,
-           org_name,
+           max(org_name) KEEP (DENSE_RANK LAST ORDER BY period) AS org_name,
            SUM(dta_to_admission_above_12hrs)               AS waits_12hr,
            SUM(emergency_admissions_via_ae_type_1
              + emergency_admissions_via_ae_type_2
              + emergency_admissions_via_ae_others)         AS admissions_via_ae
     FROM   ae_monthly
     WHERE  has_type1
-    GROUP BY org_code, org_name
+    GROUP BY org_code
     HAVING COUNT(DISTINCT period) = 24
 )
 SELECT org_code,
@@ -30,7 +30,7 @@ ORDER BY waits_12hr DESC;
 --ranking by admissions per 1000
 WITH trust_waits AS (
     SELECT org_code,
-           org_name,
+           max(org_name) KEEP (DENSE_RANK LAST ORDER BY period) AS org_name,
            SUM(dta_to_admission_above_12hrs)               AS waits_12hr,
            SUM(emergency_admissions_via_ae_type_1
              + emergency_admissions_via_ae_type_2
